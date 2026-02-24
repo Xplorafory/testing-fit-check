@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Is Software Testing a Good Fit for Me? – Quick Fit Check</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#121925; --text:#e8eef7; --muted:#a8b3c7;
+      --accent:#ed7d31; --border:#253247; --good:#39d98a; --warn:#ffd166;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,#071018, var(--bg)); color:var(--text); }
+    .wrap{max-width:980px;margin:0 auto;padding:28px 16px 60px;}
+    header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+    h1{font-size:28px;margin:0 0 6px;}
+    .subtitle{color:var(--muted);margin:0 0 14px;line-height:1.45;}
+    .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);
+      background:rgba(18,25,37,.7); padding:8px 12px;border-radius:999px;color:var(--muted); font-size:13px;}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;}
+    @media (min-width:900px){ .grid{grid-template-columns: 1.25fr .75fr;} }
+    .card{background:rgba(18,25,37,.92);border:1px solid var(--border);border-radius:16px;padding:18px;}
+    .card h2{margin:0 0 10px;font-size:18px;}
+    .q{padding:14px 0;border-top:1px solid rgba(37,50,71,.7);}
+    .q:first-child{border-top:0;padding-top:0;}
+    .q-title{margin:0 0 10px; font-weight:650; line-height:1.35;}
+    .opts{display:grid;gap:10px;}
+    label.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(37,50,71,.9); background:rgba(7,16,24,.35); cursor:pointer;}
+    label.opt:hover{border-color:rgba(237,125,49,.65);}
+    input[type="radio"]{margin-top:3px; accent-color: var(--accent);}
+    .opt span{color:var(--text); line-height:1.35;}
+    .muted{color:var(--muted);}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    button{border:0;border-radius:12px;padding:11px 14px;font-weight:650;cursor:pointer;}
+    .primary{background:var(--accent);color:#1b0d05;}
+    .ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+    .primary:disabled{opacity:.55;cursor:not-allowed;}
+    .note{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.45;}
+    .result{display:none;}
+    .result .badge{display:inline-block;background:rgba(237,125,49,.15); border:1px solid rgba(237,125,49,.35);
+      color:var(--text); padding:6px 10px;border-radius:999px;font-weight:650;margin-bottom:10px;}
+    .scorebar{display:grid;gap:10px;margin:12px 0 4px;}
+    .barrow{display:grid;grid-template-columns:72px 1fr 42px;gap:10px;align-items:center;}
+    .bar{height:10px;background:rgba(37,50,71,.7);border-radius:999px;overflow:hidden;border:1px solid rgba(37,50,71,.9);}
+    .fill{height:100%;width:0%;}
+    .fill.a{background:rgba(57,217,138,.85);}
+    .fill.b{background:rgba(237,125,49,.85);}
+    .fill.c{background:rgba(255,209,102,.9);}
+    .kicker{margin:6px 0 0;color:var(--muted);font-size:13px;}
+    ul{margin:10px 0 0 18px;color:var(--text);}
+    li{margin:6px 0;}
+    .callout{margin-top:12px;padding:12px 12px;border-radius:14px;border:1px solid rgba(37,50,71,.9);
+      background:rgba(7,16,24,.35);}
+    .callout strong{color:var(--good);}
+    .footer{margin-top:16px;color:var(--muted);font-size:12px;line-height:1.45;}
+    .small{font-size:12px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Is Software Testing a Good Fit for Me?</h1>
+        <p class="subtitle">
+          A quick fit check (not a “how good are you” test). Answer instinctively. Takes about 3 minutes.
+        </p>
+        <div class="pill">✅ 9 questions • 3 options each • Result: Explorer / Builder / Communicator</div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:16px;">
+      <main class="card" aria-label="Quiz">
+        <h2>The quiz</h2>
+        <p class="muted" style="margin-top:-2px;">
+          Pick what feels most like you. There are no wrong answers.
+        </p>
+
+        <form id="quiz">
+          <div id="questions"></div>
+
+          <div class="btns">
+            <button class="primary" id="calcBtn" type="button">Show my result</button>
+            <button class="ghost" id="resetBtn" type="button">Reset</button>
+          </div>
+
+          <p class="note" id="progressNote">0/9 answered.</p>
+        </form>
+      </main>
+
+      <aside class="card" aria-label="Result">
+        <h2>Your result</h2>
+
+        <div id="result" class="result">
+          <div class="badge" id="profileBadge">Profile</div>
+          <h3 id="profileTitle" style="margin:0 0 8px;font-size:20px;"></h3>
+          <p id="profileText" class="muted" style="margin:0;line-height:1.5;"></p>
+
+          <div class="scorebar" aria-label="Score breakdown">
+            <div class="barrow">
+              <div class="small muted">A</div>
+              <div class="bar"><div class="fill a" id="fillA"></div></div>
+              <div class="small muted" id="countA">0</div>
+            </div>
+            <div class="barrow">
+              <div class="small muted">B</div>
+              <div class="bar"><div class="fill b" id="fillB"></div></div>
+              <div class="small muted" id="countB">0</div>
+            </div>
+            <div class="barrow">
+              <div class="small muted">C</div>
+              <div class="bar"><div class="fill c" id="fillC"></div></div>
+              <div class="small muted" id="countC">0</div>
+            </div>
+            <p class="kicker" id="hybridHint"></p>
+          </div>
+
+          <div class="callout" id="fitCallout"></div>
+
+          <div class="callout">
+            <div style="font-weight:650;margin-bottom:6px;">Next steps (7 days)</div>
+            <ul id="nextSteps"></ul>
+          </div>
+
+          <div class="footer">
+            Tip: A “hybrid” result is common and often a good sign. Many strong testers are a mix.
+          </div>
+        </div>
+
+        <div id="resultEmpty" class="muted" style="line-height:1.5;">
+          Answer all questions and click <strong style="color:var(--accent);">Show my result</strong>.
+          <div style="margin-top:10px;" class="small">
+            A = curiosity & exploration • B = technical building • C = clarity & collaboration
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const QUESTIONS = [
+      {
+        t: "1) When something doesn’t work in an app, what do you do first?",
+        a: "Try more ways to reproduce it",
+        b: "Try to understand the system behind it and how it should work",
+        c: "Think about user impact and what matters most"
+      },
+      {
+        t: "2) What sounds most fun?",
+        a: "Finding bugs others miss",
+        b: "Learning tools and building automated tests",
+        c: "Helping a team agree on what “done” means"
+      },
+      {
+        t: "3) When something is unclear, how do you react?",
+        a: "I get curious and explore",
+        b: "I want the rules and the logic",
+        c: "I want to ask and align so everyone is on the same page"
+      },
+      {
+        t: "4) What type of problems do you enjoy most?",
+        a: "Small details with big consequences",
+        b: "Technical problems where you debug step by step",
+        c: "Problems where communication and prioritization matter"
+      },
+      {
+        t: "5) How do you feel about writing a little code?",
+        a: "Prefer not to, but I can if needed",
+        b: "Excited to learn, even as a beginner",
+        c: "I want basic understanding but not to live in code"
+      },
+      {
+        t: "6) What makes you lose patience the most?",
+        a: "When people don’t test at all",
+        b: "When tools and setup get messy",
+        c: "When no one makes decisions and everything stays vague"
+      },
+      {
+        t: "7) What motivates you most at work?",
+        a: "Catching issues before they become real problems",
+        b: "Building something that saves time and creates impact",
+        c: "Creating clarity and confidence for others"
+      },
+      {
+        t: "8) If you’re told to “test a new feature”, what do you want first?",
+        a: "A chance to click around and learn by exploring",
+        b: "Technical details about how it’s built",
+        c: "A clear picture of the most critical user flow"
+      },
+      {
+        t: "9) Which statement fits you best?",
+        a: "I like questioning things and finding the unexpected",
+        b: "I like understanding systems and how parts connect",
+        c: "I like creating structure and helping people align"
+      }
+    ];
+
+    const PROFILES = {
+      Explorer: {
+        badge: "Explorer (mostly A)",
+        title: "Explorer",
+        text: "You have the right curiosity for testing. You enjoy exploring, questioning, and finding the unexpected. This often fits manual and exploratory testing especially well in the beginning.",
+        fit: "<strong>Why you fit:</strong> You get curious when things are unclear and you enjoy chasing truth in the details.",
+        steps: [
+          "Do 3 quick exploratory sessions on any app (10 minutes each): explore, take notes, summarize.",
+          "Write 5 bug reports as if you sent them to a team (what happened, steps, expected, actual).",
+          "Learn the basics: a test idea, a risky assumption, and a user journey."
+        ]
+      },
+      Builder: {
+        badge: "Builder (mostly B)",
+        title: "Builder",
+        text: "You’re a good fit for testing if you enjoy debugging and structure. You’ll likely enjoy automation over time. Start with fundamentals and build confidence step by step.",
+        fit: "<strong>Why you fit:</strong> You like logic, systems, and figuring out why things break, step by step.",
+        steps: [
+          "Learn basic coding logic (not to become a developer): variables, if-statements, functions.",
+          "Create 3 simple tests on paper: input → expected → why it matters.",
+          "Test a web app and write down 10 test ideas you would like to automate later."
+        ]
+      },
+      Communicator: {
+        badge: "Communicator (mostly C)",
+        title: "Communicator",
+        text: "You’re a strong fit for testing in teams where clarity and decisions matter. You’ll likely excel at asking the right questions, prioritizing risk, and creating release confidence.",
+        fit: "<strong>Why you fit:</strong> You want to create clarity and help others make better decisions, not just “check things”.",
+        steps: [
+          "Pick an app and write: 3 critical flows, 3 biggest risks, 3 things that must work.",
+          "Practice clear questions: “What do we mean by done?”, “What’s most important if we cut scope?”",
+          "Create a 1-page mini test plan: goal, risks, focus, what you won’t test, and who owns the risk."
+        ]
+      }
+    };
+
+    function renderQuestions(){
+      const holder = document.getElementById("questions");
+      holder.innerHTML = "";
+      QUESTIONS.forEach((q, idx) => {
+        const qDiv = document.createElement("div");
+        qDiv.className = "q";
+        qDiv.innerHTML = `
+          <p class="q-title">${q.t}</p>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="q${idx}" value="A"><span>${q.a}</span></label>
+            <label class="opt"><input type="radio" name="q${idx}" value="B"><span>${q.b}</span></label>
+            <label class="opt"><input type="radio" name="q${idx}" value="C"><span>${q.c}</span></label>
+          </div>
+        `;
+        holder.appendChild(qDiv);
+      });
+    }
+
+    function countAnswered(){
+      let answered = 0;
+      for(let i=0;i<QUESTIONS.length;i++){
+        const checked = document.querySelector(`input[name="q${i}"]:checked`);
+        if(checked) answered++;
+      }
+      return answered;
+    }
+
+    function updateProgress(){
+      const answered = countAnswered();
+      document.getElementById("progressNote").textContent = `${answered}/${QUESTIONS.length} answered.`;
+      document.getElementById("calcBtn").disabled = answered !== QUESTIONS.length;
+    }
+
+    function computeResult(){
+      const counts = {A:0,B:0,C:0};
+      for(let i=0;i<QUESTIONS.length;i++){
+        const checked = document.querySelector(`input[name="q${i}"]:checked`);
+        counts[checked.value]++;
+      }
+
+      const max = Math.max(counts.A, counts.B, counts.C);
+      const tops = [];
+      if(counts.A === max) tops.push("A");
+      if(counts.B === max) tops.push("B");
+      if(counts.C === max) tops.push("C");
+
+      let profileKey = "Explorer";
+      if(tops.length === 1){
+        profileKey = tops[0] === "A" ? "Explorer" : tops[0] === "B" ? "Builder" : "Communicator";
+      } else {
+        // Hybrid: give a reasonable starting profile without over-claiming
+        if(tops.includes("B")) profileKey = "Builder";
+        else if(tops.includes("A")) profileKey = "Explorer";
+        else profileKey = "Communicator";
+      }
+
+      return {counts, profileKey, isHybrid: tops.length > 1, tops};
+    }
+
+    function showResult(){
+      const {counts, profileKey, isHybrid, tops} = computeResult();
+      const total = QUESTIONS.length;
+
+      document.getElementById("countA").textContent = counts.A;
+      document.getElementById("countB").textContent = counts.B;
+      document.getElementById("countC").textContent = counts.C;
+      document.getElementById("fillA").style.width = `${(counts.A/total)*100}%`;
+      document.getElementById("fillB").style.width = `${(counts.B/total)*100}%`;
+      document.getElementById("fillC").style.width = `${(counts.C/total)*100}%`;
+
+      const p = PROFILES[profileKey];
+      document.getElementById("profileBadge").textContent = p.badge;
+      document.getElementById("profileTitle").textContent = p.title;
+      document.getElementById("profileText").textContent = p.text;
+      document.getElementById("fitCallout").innerHTML = p.fit;
+
+      const stepsUl = document.getElementById("nextSteps");
+      stepsUl.innerHTML = "";
+      p.steps.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        stepsUl.appendChild(li);
+      });
+
+      const hint = document.getElementById("hybridHint");
+      if(isHybrid){
+        const map = {A:"Explorer",B:"Builder",C:"Communicator"};
+        const names = tops.map(t => map[t]).join(" + ");
+        hint.textContent = `Hybrid profile: ${names}. That’s common. Use the plan above as your starting point.`;
+      } else {
+        hint.textContent = `Clear profile: ${p.title}.`;
+      }
+
+      document.getElementById("result").style.display = "block";
+      document.getElementById("resultEmpty").style.display = "none";
+
+      if(window.innerWidth < 900){
+        document.getElementById("result").scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    }
+
+    function resetAll(){
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      document.getElementById("result").style.display = "none";
+      document.getElementById("resultEmpty").style.display = "block";
+      updateProgress();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    renderQuestions();
+    updateProgress();
+    document.getElementById("quiz").addEventListener("change", updateProgress);
+    document.getElementById("calcBtn").addEventListener("click", showResult);
+    document.getElementById("resetBtn").addEventListener("click", resetAll);
+  </script>
+</body>
+</html>
