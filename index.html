@@ -1,0 +1,361 @@
+```html
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Passar mjukvarutestning mig? – Snabbtest</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#121925; --text:#e8eef7; --muted:#a8b3c7;
+      --accent:#ed7d31; --border:#253247; --good:#39d98a; --warn:#ffd166;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,#071018, var(--bg)); color:var(--text); }
+    .wrap{max-width:980px;margin:0 auto;padding:28px 16px 60px;}
+    header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+    h1{font-size:28px;margin:0 0 6px;}
+    .subtitle{color:var(--muted);margin:0 0 14px;line-height:1.45;}
+    .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);
+      background:rgba(18,25,37,.7); padding:8px 12px;border-radius:999px;color:var(--muted); font-size:13px;}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;}
+    @media (min-width:900px){ .grid{grid-template-columns: 1.25fr .75fr;} }
+    .card{background:rgba(18,25,37,.92);border:1px solid var(--border);border-radius:16px;padding:18px;}
+    .card h2{margin:0 0 10px;font-size:18px;}
+    .q{padding:14px 0;border-top:1px solid rgba(37,50,71,.7);}
+    .q:first-child{border-top:0;padding-top:0;}
+    .q-title{margin:0 0 10px; font-weight:650; line-height:1.35;}
+    .opts{display:grid;gap:10px;}
+    label.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(37,50,71,.9); background:rgba(7,16,24,.35); cursor:pointer;}
+    label.opt:hover{border-color:rgba(237,125,49,.65);}
+    input[type="radio"]{margin-top:3px; accent-color: var(--accent);}
+    .opt span{color:var(--text); line-height:1.35;}
+    .muted{color:var(--muted);}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    button{border:0;border-radius:12px;padding:11px 14px;font-weight:650;cursor:pointer;}
+    .primary{background:var(--accent);color:#1b0d05;}
+    .ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+    .primary:disabled{opacity:.55;cursor:not-allowed;}
+    .note{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.45;}
+    .result{display:none;}
+    .result .badge{display:inline-block;background:rgba(237,125,49,.15); border:1px solid rgba(237,125,49,.35);
+      color:var(--text); padding:6px 10px;border-radius:999px;font-weight:650;margin-bottom:10px;}
+    .scorebar{display:grid;gap:10px;margin:12px 0 4px;}
+    .barrow{display:grid;grid-template-columns:72px 1fr 42px;gap:10px;align-items:center;}
+    .bar{height:10px;background:rgba(37,50,71,.7);border-radius:999px;overflow:hidden;border:1px solid rgba(37,50,71,.9);}
+    .fill{height:100%;width:0%;}
+    .fill.a{background:rgba(57,217,138,.85);}
+    .fill.b{background:rgba(237,125,49,.85);}
+    .fill.c{background:rgba(255,209,102,.9);}
+    .kicker{margin:6px 0 0;color:var(--muted);font-size:13px;}
+    ul{margin:10px 0 0 18px;color:var(--text);}
+    li{margin:6px 0;}
+    .callout{margin-top:12px;padding:12px 12px;border-radius:14px;border:1px solid rgba(37,50,71,.9);
+      background:rgba(7,16,24,.35);}
+    .callout strong{color:var(--good);}
+    .footer{margin-top:16px;color:var(--muted);font-size:12px;line-height:1.45;}
+    .small{font-size:12px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Passar mjukvarutestning mig?</h1>
+        <p class="subtitle">
+          Ett snabbt passformstest (inte ett “hur bra är du”-test). Svara spontant. Det tar cirka 3 minuter.
+        </p>
+        <div class="pill">✅ 9 frågor • 3 svar per fråga • Resultat: Explorer / Builder / Communicator</div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:16px;">
+      <main class="card" aria-label="Test">
+        <h2>Testet</h2>
+        <p class="muted" style="margin-top:-2px;">
+          Välj det alternativ som känns mest som du. Du kan inte “svara fel”.
+        </p>
+
+        <form id="quiz">
+          <div id="questions"></div>
+
+          <div class="btns">
+            <button class="primary" id="calcBtn" type="button">Visa resultat</button>
+            <button class="ghost" id="resetBtn" type="button">Nollställ</button>
+          </div>
+
+          <p class="note" id="progressNote">0/9 besvarade.</p>
+        </form>
+      </main>
+
+      <aside class="card" aria-label="Resultat">
+        <h2>Resultat</h2>
+
+        <div id="result" class="result">
+          <div class="badge" id="profileBadge">Profil</div>
+          <h3 id="profileTitle" style="margin:0 0 8px;font-size:20px;"></h3>
+          <p id="profileText" class="muted" style="margin:0;line-height:1.5;"></p>
+
+          <div class="scorebar" aria-label="Poängfördelning">
+            <div class="barrow">
+              <div class="small muted">A</div>
+              <div class="bar"><div class="fill a" id="fillA"></div></div>
+              <div class="small muted" id="countA">0</div>
+            </div>
+            <div class="barrow">
+              <div class="small muted">B</div>
+              <div class="bar"><div class="fill b" id="fillB"></div></div>
+              <div class="small muted" id="countB">0</div>
+            </div>
+            <div class="barrow">
+              <div class="small muted">C</div>
+              <div class="bar"><div class="fill c" id="fillC"></div></div>
+              <div class="small muted" id="countC">0</div>
+            </div>
+            <p class="kicker" id="hybridHint"></p>
+          </div>
+
+          <div class="callout" id="fitCallout"></div>
+
+          <div class="callout">
+            <div style="font-weight:650;margin-bottom:6px;">Nästa steg (7 dagar)</div>
+            <ul id="nextSteps"></ul>
+          </div>
+
+          <div class="footer">
+            Tips: Om du får ett “hybridresultat” är det oftast positivt. Många bra testare har en mix.
+          </div>
+        </div>
+
+        <div id="resultEmpty" class="muted" style="line-height:1.5;">
+          Svara på alla frågor och klicka <strong style="color:var(--accent);">Visa resultat</strong>.
+          <div style="margin-top:10px;" class="small">
+            A = nyfiken utforskare • B = teknik och byggande • C = tydlighet och samarbete
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const QUESTIONS = [
+      {
+        t: "1) När något inte funkar i en app, vad gör du först?",
+        a: "Testar fler sätt att få det att hända igen",
+        b: "Försöker förstå systemet bakom och hur det borde fungera",
+        c: "Tänker direkt på hur det påverkar användaren och vad som är viktigast"
+      },
+      {
+        t: "2) Vilket låter roligast?",
+        a: "Leta efter buggar som andra missar",
+        b: "Lära mig verktyg och bygga automatiska tester",
+        c: "Få team att förstå vad “klart” betyder"
+      },
+      {
+        t: "3) När du stöter på något oklart, hur reagerar du?",
+        a: "Blir nyfiken och vill prova mig fram",
+        b: "Vill hitta reglerna och förstå logiken",
+        c: "Vill fråga och reda ut så alla är överens"
+      },
+      {
+        t: "4) Vilken typ av problem gillar du mest?",
+        a: "Små detaljer som kan få stora konsekvenser",
+        b: "Tekniska problem där man behöver felsöka steg för steg",
+        c: "Problem där kommunikation och prioritering avgör"
+      },
+      {
+        t: "5) Hur känner du inför att skriva lite kod?",
+        a: "Helst inte, men kan om jag måste",
+        b: "Kul att lära mig, även om jag är nybörjare",
+        c: "Jag vill förstå på en grundnivå men inte leva i kod"
+      },
+      {
+        t: "6) Vad får dig att tappa tålamod mest?",
+        a: "När folk inte testar alls",
+        b: "När verktyg och setup krånglar",
+        c: "När ingen tar beslut och allt blir otydligt"
+      },
+      {
+        t: "7) Vad motiverar dig mest i arbete?",
+        a: "Att hitta fel innan de blir problem",
+        b: "Att bygga något som sparar tid och gör skillnad",
+        c: "Att skapa trygghet och tydlighet för andra"
+      },
+      {
+        t: "8) Om du får en ny feature att “testa”, vad vill du ha först?",
+        a: "En chans att klicka runt och förstå själv",
+        b: "Tekniska detaljer och hur det är byggt",
+        c: "En tydlig bild av vad som är viktigast för användaren"
+      },
+      {
+        t: "9) Vilket påstående passar dig bäst?",
+        a: "Jag gillar att ifrågasätta och hitta det oväntade",
+        b: "Jag gillar att förstå system och hur delar hänger ihop",
+        c: "Jag gillar att skapa struktur och få människor att dra åt samma håll"
+      }
+    ];
+
+    const PROFILES = {
+      Explorer: {
+        badge: "Explorer (flest A)",
+        title: "Explorer",
+        text: "Du har rätt nyfikenhet för testning. Du gillar att prova, ifrågasätta och hitta det oväntade. Det här passar ofta perfekt för manuell och utforskande testning i början.",
+        fit: "<strong>Varför du passar:</strong> Du blir nyfiken när något är oklart och du gillar att jaga sanningen i detaljer.",
+        steps: [
+          "Gör 3 snabba “utforskande pass” på en valfri app (10 min vardera): prova, notera, sammanfatta.",
+          "Skriv 5 buggrapporter som om du skickade dem till ett team (vad hände, steg, förväntat, faktiskt).",
+          "Lär dig grunderna: vad är en testidé, ett riskantagande och en användarresa."
+        ]
+      },
+      Builder: {
+        badge: "Builder (flest B)",
+        title: "Builder",
+        text: "Du passar bra för testning om du gillar felsökning och struktur. Du kommer troligen trivas med automation på sikt. Börja med grunderna och bygg självförtroende i små steg.",
+        fit: "<strong>Varför du passar:</strong> Du gillar logik, system och att reda ut varför saker går sönder, steg för steg.",
+        steps: [
+          "Lär dig grundlogik i kod (inte för att bli utvecklare, utan för att förstå): variabler, if-satser, funktioner.",
+          "Skapa 3 enkla tester på papper: input → förväntat resultat → varför det är viktigt.",
+          "Testa en webbapp och dokumentera 10 testidéer du skulle vilja automatisera senare."
+        ]
+      },
+      Communicator: {
+        badge: "Communicator (flest C)",
+        title: "Communicator",
+        text: "Du passar bra för testning i team där tydlighet och beslut är viktigt. Du kommer vara stark i att ställa rätt frågor, prioritera risk och skapa trygghet i releaser.",
+        fit: "<strong>Varför du passar:</strong> Du vill skapa klarhet och hjälpa andra fatta bättre beslut, inte bara “kolla saker”.",
+        steps: [
+          "Välj en app och skriv: 3 viktigaste användarflöden, 3 största risker, 3 saker som måste fungera.",
+          "Öva på att skriva tydliga frågor: “Vad menar vi med klart?”, “Vad är viktigast om något måste strykas?”",
+          "Skapa en mini-testplan på 1 sida: mål, risker, fokus, vad du inte testar, vem som äger risk."
+        ]
+      }
+    };
+
+    function renderQuestions(){
+      const holder = document.getElementById("questions");
+      holder.innerHTML = "";
+      QUESTIONS.forEach((q, idx) => {
+        const qDiv = document.createElement("div");
+        qDiv.className = "q";
+        qDiv.innerHTML = `
+          <p class="q-title">${q.t}</p>
+          <div class="opts">
+            <label class="opt"><input type="radio" name="q${idx}" value="A"><span>${q.a}</span></label>
+            <label class="opt"><input type="radio" name="q${idx}" value="B"><span>${q.b}</span></label>
+            <label class="opt"><input type="radio" name="q${idx}" value="C"><span>${q.c}</span></label>
+          </div>
+        `;
+        holder.appendChild(qDiv);
+      });
+    }
+
+    function countAnswered(){
+      let answered = 0;
+      for(let i=0;i<QUESTIONS.length;i++){
+        const checked = document.querySelector(`input[name="q${i}"]:checked`);
+        if(checked) answered++;
+      }
+      return answered;
+    }
+
+    function updateProgress(){
+      const answered = countAnswered();
+      document.getElementById("progressNote").textContent = `${answered}/${QUESTIONS.length} besvarade.`;
+      document.getElementById("calcBtn").disabled = answered !== QUESTIONS.length;
+    }
+
+    function computeResult(){
+      const counts = {A:0,B:0,C:0};
+      for(let i=0;i<QUESTIONS.length;i++){
+        const checked = document.querySelector(`input[name="q${i}"]:checked`);
+        counts[checked.value]++;
+      }
+
+      // Determine profile
+      const max = Math.max(counts.A, counts.B, counts.C);
+      const tops = [];
+      if(counts.A === max) tops.push("A");
+      if(counts.B === max) tops.push("B");
+      if(counts.C === max) tops.push("C");
+
+      let profileKey = "Explorer";
+      if(tops.length === 1){
+        profileKey = tops[0] === "A" ? "Explorer" : tops[0] === "B" ? "Builder" : "Communicator";
+      } else {
+        // Hybrid: pick based on strongest secondary signal by tie-break order A->B->C (or keep neutral)
+        // We'll show hybrid hint instead of over-claiming.
+        // Choose a representative profile to give a starting path:
+        if(tops.includes("B")) profileKey = "Builder";
+        else if(tops.includes("A")) profileKey = "Explorer";
+        else profileKey = "Communicator";
+      }
+
+      return {counts, profileKey, isHybrid: tops.length > 1, tops};
+    }
+
+    function showResult(){
+      const {counts, profileKey, isHybrid, tops} = computeResult();
+      const total = QUESTIONS.length;
+
+      // Update counts + bars
+      document.getElementById("countA").textContent = counts.A;
+      document.getElementById("countB").textContent = counts.B;
+      document.getElementById("countC").textContent = counts.C;
+      document.getElementById("fillA").style.width = `${(counts.A/total)*100}%`;
+      document.getElementById("fillB").style.width = `${(counts.B/total)*100}%`;
+      document.getElementById("fillC").style.width = `${(counts.C/total)*100}%`;
+
+      // Profile content
+      const p = PROFILES[profileKey];
+      document.getElementById("profileBadge").textContent = p.badge;
+      document.getElementById("profileTitle").textContent = p.title;
+      document.getElementById("profileText").textContent = p.text;
+      document.getElementById("fitCallout").innerHTML = p.fit;
+
+      const stepsUl = document.getElementById("nextSteps");
+      stepsUl.innerHTML = "";
+      p.steps.forEach(s => {
+        const li = document.createElement("li");
+        li.textContent = s;
+        stepsUl.appendChild(li);
+      });
+
+      // Hybrid hint
+      const hint = document.getElementById("hybridHint");
+      if(isHybrid){
+        const map = {A:"Explorer",B:"Builder",C:"Communicator"};
+        const names = tops.map(t => map[t]).join(" + ");
+        hint.textContent = `Hybridprofil: ${names}. Det är vanligt. Använd planen ovan som start.`;
+      } else {
+        hint.textContent = `Tydlig profil: ${p.title}.`;
+      }
+
+      // Toggle UI
+      document.getElementById("result").style.display = "block";
+      document.getElementById("resultEmpty").style.display = "none";
+
+      // Scroll result into view on small screens
+      if(window.innerWidth < 900){
+        document.getElementById("result").scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    }
+
+    function resetAll(){
+      document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+      document.getElementById("result").style.display = "none";
+      document.getElementById("resultEmpty").style.display = "block";
+      updateProgress();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    // Init
+    renderQuestions();
+    updateProgress();
+    document.getElementById("quiz").addEventListener("change", updateProgress);
+    document.getElementById("calcBtn").addEventListener("click", showResult);
+    document.getElementById("resetBtn").addEventListener("click", resetAll);
+  </script>
+</body>
+</html>
+```
